@@ -1,0 +1,9 @@
+name "cli"
+
+authors "Orfeo Da Vià"
+copyright "Copyright © 2025, Microline"
+license "Microline"
+
+sourceFiles "app.d"
+dependency "promo" path="../"
+targetType "executable"

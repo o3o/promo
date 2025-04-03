@@ -1,0 +1,7 @@
+name "promo"
+
+authors "Orfeo Da Vià"
+copyright "Copyright © 2025, Microline"
+license "Microline"
+
+targetType "library"
