@@ -35,6 +35,10 @@ enum WriteFC : ubyte {
    coil = 0x05,
    holding = 0x06
 }
+alias packCoil = packRead!(ReadFC.coil);
+alias packDiscrete = packRead!(ReadFC.discrete);
+alias packHolding = packRead!(ReadFC.holding);
+alias packInput = packRead!(ReadFC.input);
 
 const(ubyte)[] packRead(ReadFC FC)(in ushort id, in ubyte address, in ushort register, in ushort qty) @safe pure {
    // non serve l'endian, di default e' bigendian
