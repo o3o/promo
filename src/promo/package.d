@@ -1,34 +1,28 @@
 /**
- * Crea un pacchetto modbus per il trasporto in TCP/IP
- * come descritto a pag. 4 del documento modbus_messagging_implementation_guide_v1_ob.pdf
+ * Creates a modbus packet for TCP/IP transport as described on page 4 of
+ * modbus_messagging_implementation_guide_v1_ob.pdf
  *
- * Il MBAP (Modbus Application Protocol) header e'
+ * MBAP (Modbus Application Protocol) header is:
  * ```
- * | field          | len | description                 |
- * | ---            | --- | ---                         |
- * | transaction id | 2   |                             |
- * | Protocol id    | 2   | impostare a 00 00           |
- * | length         | 2   | numero di bytes che seguono |
- * | unit id        | 1   | id dello slave remoto       |
+ * | field          | len | description                        |
+ * | ---            | --- | ---                                |
+ * | transaction id | 2   | Transaction identifier             |
+ * | Protocol id    | 2   | Protocol Identifier (set to 00 00) |
+ * | length         | 2   | Length                             |
+ * | unit id        | 1   | Unit Identifier                    |
  * ```
  *
- * Seguito da
+ * Followed by:
  * ```
- * | field         | len | description     |
- * | ---           | --- | ---             |
- * | function code | 1   | codice funzione |
- * | data          | n   | dati            |
+ * | field         | len | description   |
+ * | ---           | --- | ---           |
+ * | function code | 1   | function code |
+ * | data          | n   | payload       |
  * ```
  *
  * Authors: Orfeo Da Vià
  */
 module promo;
-
-import std.string;
-import std.exception;
-import std.variant;
-import std.datetime;
-import std.conv;
 
 enum ReadFC : ubyte {
    coil = 0x01,
@@ -36,6 +30,7 @@ enum ReadFC : ubyte {
    holding = 0x03,
    input = 0x04,
 }
+
 enum WriteFC : ubyte {
    coil = 0x05,
    holding = 0x06
@@ -56,7 +51,6 @@ const(ubyte)[] packRead(ReadFC FC)(in ushort id, in ubyte address, in ushort reg
    buffer.append!ubyte(address); // indirizzo del server
    buffer.append!ubyte(FC);
 
-   //ubyte[2] r = nativeToBigEndian(register);
    buffer.append!ushort(register);
    buffer.append!ushort(qty);
 
@@ -77,7 +71,6 @@ const(ubyte)[] packRead(ReadFC FC)(in ushort id, in ubyte address, in ushort reg
 
    // pagina 12
    // legge 20 - 38
-
    const(ubyte)[] b01 = packRead!(ReadFC.coil)(42, 10, 0x13, 0x12);
 
    assert(b01 == [
@@ -89,8 +82,6 @@ const(ubyte)[] packRead(ReadFC FC)(in ushort id, in ubyte address, in ushort reg
          0, 0x13,
          0, 0x12]
          );
-
-
 }
 
 const(ubyte)[] unpackBit(const(ubyte)[] blob) @safe pure {
@@ -99,6 +90,8 @@ const(ubyte)[] unpackBit(const(ubyte)[] blob) @safe pure {
 
 ushort[] unpackWord(const(ubyte)[] blob) @safe pure {
    import std.bitmanip : read;
+   import std.array: empty;
+
    const(ubyte)[] payload = blob[9 .. $];
    ushort[] reply;
    while (!payload.empty) {
