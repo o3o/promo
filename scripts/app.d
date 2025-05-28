@@ -12,7 +12,7 @@ void main(string[] args) {
 
    string ip = "192.168.222.220";
    ushort fc = 3;
-   ushort reference;
+   ushort register;
    ushort count = 1;
    ubyte server;
 
@@ -21,7 +21,7 @@ void main(string[] args) {
          "ip", &ip,
          "f", &fc,
          "a", &server,
-         "r", &reference,
+         "r", &register,
          "c", &count
          );
    if (opt.helpWanted) {
@@ -29,36 +29,48 @@ void main(string[] args) {
       writeln();
       writeln("Arguments");
       writeln("-ip\thost ip address");
-      writeln("-r\tstart reference");
-      writeln("-c\tnumber of value to read");
+      writeln("-a\tserver address");
+      writeln("-r\tregister");
+      writeln("-c\tnumber of value to read, or value to write");
       writeln("-f\tfunction code");
       writeln("\t1 read coil");
       writeln("\t2 read discrete input");
       writeln("\t3 read holding register");
       writeln("\t4 read input register");
+      writeln("\t5 write single coil");
+      writeln("\t6 write single register");
       return;
    }
 
-   enum IP = "192.168.222.220";
    enum PORT = 502;
 
-   Address addr = parseAddress(IP, PORT);
+   Address addr = parseAddress(ip, PORT);
    socket.connect(addr);
+   scope (exit) {
+      socket.close();
+      writeln("さよなら");
+   }
 
-   //const(ubyte)[] msg = packRead!(ReadFC.holding)(42, 4, 0xd119, 1);
+
    const(ubyte)[] msg;
    switch (fc) {
       case 1:
-         msg = packRead!(ReadFC.coil)(42, server, reference, count);
+         msg = packReadCoil(42, server, register, count);
          break;
       case 2:
-         msg = packRead!(ReadFC.discrete)(42, server, reference, count);
+         msg = packReadDiscrete(42, server, register, count);
          break;
       case 3:
-         msg = packRead!(ReadFC.holding)(42, server, reference, count);
+         msg = packReadHolding(42, server, register, count);
          break;
       case 4:
-         msg = packRead!(ReadFC.input)(42, server, reference, count);
+         msg = packReadInput(42, server, register, count);
+         break;
+      case 5:
+         msg = packWriteCoil(42, server, register, count > 0 ? 0xff00 : 0);
+         break;
+      case 6:
+         msg = packWriteRegister(42, server, register, count);
          break;
       default:
          assert(false);
@@ -71,12 +83,21 @@ void main(string[] args) {
 
     // Leggi risposta
     ubyte[1024] buffer;
-    size_t received = socket.receive(buffer);
-    writefln("recv: %(0x%x, %)", buffer[0..received]);
-    const(ushort)[] data = unpackWord(buffer[0..received]);
-    foreach (i,d; data) {
-       writefln("0x%x: %d 0x%x", reference + i, d,d);
+    long received = socket.receive(buffer);
+    if (received > 0) {
+       if (fc < 3) {
+          writeln("todo");
+       } else if (fc < 5) {
+          writefln("recv: %(0x%x, %)", buffer[0..received]);
+          const(ushort)[] data = unpackWord(buffer[0..received]);
+          foreach (i,d; data) {
+             writefln("%d: %d (0x%x)", register + i, d,d);
+          }
+       } else {
+          writefln("recv: %(0x%x, %)", buffer[0..received]);
+          writeln("done!");
+       }
+    } else {
+       writeln("no reply!");
     }
-
-    socket.close();
 }
