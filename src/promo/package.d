@@ -103,7 +103,7 @@ const(ubyte)[] pack(FC F)(in ushort id, in ubyte unitId, in ushort register, in 
 }
 
 @safe pure unittest {
-   const(ubyte)[] blob = packRead!(ReadFC.input)(42, 10, 0xd000, 1);
+   const(ubyte)[] blob = pack!(FC.readInputRegisters)(42, 10, 0xd000, 1);
    assert(blob == [
          0, 0x2a,
          0, 0,
@@ -116,7 +116,7 @@ const(ubyte)[] pack(FC F)(in ushort id, in ubyte unitId, in ushort register, in 
 
    // pagina 12
    // legge 20 - 38
-   const(ubyte)[] b01 = packRead!(ReadFC.coil)(42, 10, 0x13, 0x12);
+   const(ubyte)[] b01 = pack!(FC.readCoils)(42, 10, 0x13, 0x12);
 
    assert(b01 == [
          0, 0x2a, // 42
