@@ -1,7 +1,9 @@
 name "promo"
+description "Modbus over TCP payloads"
 
 authors "Orfeo Da Vià"
-copyright "Copyright © 2025, Microline"
-license "Microline"
-description "Modbus over TCP payloads" 
+copyright "Copyright © 2025, Orfeo Da Vià"
+license "MIT"
 targetType "library"
+
+targetPath "build"
